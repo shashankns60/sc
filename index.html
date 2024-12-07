@@ -46,18 +46,8 @@
         </div>
 
         <script>
-        // Save URL mappings to localStorage
-        function saveToLocalStorage(key, value) {
-            const urlData = JSON.parse(localStorage.getItem("urlDatabase")) || {};
-            urlData[key] = value;
-            localStorage.setItem("urlDatabase", JSON.stringify(urlData));
-        }
-
-        // Retrieve URL mappings from localStorage
-        function getFromLocalStorage(key) {
-            const urlData = JSON.parse(localStorage.getItem("urlDatabase")) || {};
-            return urlData[key];
-        }
+        // In-memory storage for shortened URLs
+        const urlDatabase = {};
 
         // Generate random 6-character short keys
         function generateShortKey() {
@@ -75,7 +65,7 @@
 
             const longUrl = document.getElementById('longUrl').value.trim();
             const shortKey = generateShortKey();
-            const shortUrl = `${window.location.origin}${window.location.pathname}#${shortKey}`;
+            const shortUrl = `${window.location.origin}#${shortKey}`;
 
             // Validate URL
             if (!longUrl.startsWith('http://') && !longUrl.startsWith('https://')) {
@@ -84,7 +74,7 @@
             }
 
             // Save the mapping
-            saveToLocalStorage(shortKey, longUrl);
+            urlDatabase[shortKey] = longUrl;
 
             // Show the shortened URL
             const shortUrlDiv = document.getElementById('shortUrl');
@@ -94,9 +84,8 @@
         // Redirect logic for shortened URLs
         function handleRedirect() {
             const hash = window.location.hash.slice(1); // Remove '#'
-            const originalUrl = getFromLocalStorage(hash);
-            if (hash && originalUrl) {
-                window.location.href = originalUrl;
+            if (hash && urlDatabase[hash]) {
+                window.location.href = urlDatabase[hash];
             }
         }
 
