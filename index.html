@@ -4,96 +4,93 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>URL Shortener</title>
-        <!-- Tailwind CSS -->
-        <script src="https://cdn.tailwindcss.com"></script>
         <!-- Bootstrap CSS -->
         <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
             rel="stylesheet">
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
         <style>
         body {
-            background: linear-gradient(to bottom right, #4CAF50, #3a7bd5);
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
         }
-        .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: rgba(255, 255, 255, 0.1);
-            font-size: 4rem;
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #007BFF;
+        }
+        .short-url a {
+            color: #28a745;
             font-weight: bold;
-            pointer-events: none;
-            animation: move 5s linear infinite alternate;
-        }
-        @keyframes move {
-            from {
-                transform: translate(-50%, -50%) rotate(0deg);
-            }
-            to {
-                transform: translate(-50%, -50%) rotate(360deg);
-            }
+            text-decoration: none;
         }
     </style>
     </head>
     <body>
-        <div class="watermark">Santeck & Webleex</div>
-        <div
-            class="container d-flex justify-content-center align-items-center min-vh-100">
-            <div class="card shadow-lg p-4 rounded-lg bg-white w-100"
-                style="max-width: 400px;">
-                <h2 class="text-center text-xl font-bold text-gray-800">URL
-                    Shortener</h2>
-                <form id="urlForm" class="mt-4">
-                    <input type="text" id="longUrl"
-                        placeholder="Enter your URL here"
-                        class="form-control mb-3" required>
-                    <button type="submit" class="btn btn-primary w-100">Shorten
-                        URL</button>
-                </form>
-                <div id="shortUrl" class="mt-3 text-center"></div>
-            </div>
+        <div class="container text-center">
+            <h1 class="mb-4">URL Shortener</h1>
+            <form id="urlForm">
+                <input type="text" id="longUrl" class="form-control mb-3"
+                    placeholder="Enter your URL here" required>
+                <button type="submit" class="btn btn-primary w-100">Shorten
+                    URL</button>
+            </form>
+            <div id="shortUrl" class="mt-4"></div>
         </div>
-        <script>
-        // LocalStorage to mimic URL mapping
-        const urlDb = JSON.parse(localStorage.getItem('urlDb')) || {};
 
-        // Generate a random short key
-        const generateShortKey = () => {
-            const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            return Array(6).fill(0).map(() => characters.charAt(Math.floor(Math.random() * characters.length))).join('');
-        };
+        <script>
+        // In-memory storage for shortened URLs
+        const urlDatabase = {};
+
+        // Generate random 6-character short keys
+        function generateShortKey() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let shortKey = '';
+            for (let i = 0; i < 6; i++) {
+                shortKey += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return shortKey;
+        }
 
         // Handle form submission
-        document.getElementById('urlForm').addEventListener('submit', (event) => {
+        document.getElementById('urlForm').addEventListener('submit', function (event) {
             event.preventDefault();
 
             const longUrl = document.getElementById('longUrl').value.trim();
-            if (!longUrl) return alert('Please enter a valid URL.');
+            const shortKey = generateShortKey();
+            const shortUrl = `${window.location.origin}${window.location.pathname}#${shortKey}`;
 
-            // Generate a unique short key
-            let shortKey = generateShortKey();
-            while (urlDb[shortKey]) shortKey = generateShortKey();
+            // Validate URL
+            if (!longUrl.startsWith('http://') && !longUrl.startsWith('https://')) {
+                alert("Please enter a valid URL starting with 'http://' or 'https://'");
+                return;
+            }
 
-            // Save mapping to "localStorage"
-            urlDb[shortKey] = longUrl;
-            localStorage.setItem('urlDb', JSON.stringify(urlDb));
+            // Save the mapping
+            urlDatabase[shortKey] = longUrl;
 
-            // Display shortened URL
+            // Show the shortened URL
             const shortUrlDiv = document.getElementById('shortUrl');
-            const shortUrl = `${window.location.origin}/sc/#/${shortKey}`;
-            shortUrlDiv.innerHTML = `
-                <div class="alert alert-success">
-                    Short URL: <a href="${shortUrl}" target="_blank">${shortUrl}</a>
-                </div>`;
+            shortUrlDiv.innerHTML = `Short URL: <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
         });
 
-        // Redirect logic for short URLs
-        const hash = window.location.hash.replace('/#/', '');
-        if (hash && urlDb[hash]) {
-            window.location.href = urlDb[hash];
-        } else if (hash) {
-            alert('Invalid short URL!');
+        // Redirect logic for shortened URLs
+        function handleRedirect() {
+            const hash = window.location.hash.slice(1); // Remove '#'
+            if (hash && urlDatabase[hash]) {
+                window.location.href = urlDatabase[hash];
+            }
         }
+
+        // Check if we need to redirect
+        window.onload = handleRedirect;
     </script>
     </body>
 </html>
