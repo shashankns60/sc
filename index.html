@@ -65,7 +65,7 @@
 
             const longUrl = document.getElementById('longUrl').value.trim();
             const shortKey = generateShortKey();
-            const shortUrl = `${window.location.origin}${window.location.pathname}/sc/#/${shortKey}`;
+            const shortUrl = `${window.location.origin}${window.location.pathname}/sc/#${shortKey}`;
 
             // Validate URL
             if (!longUrl.startsWith('http://') && !longUrl.startsWith('https://')) {
